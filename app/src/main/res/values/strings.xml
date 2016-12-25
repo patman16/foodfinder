@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">FoodFinder</string>
+    <string name="home_activity">FoodFinder Home</string>
+    <string name="search_result_activity">Search Results</string>
     <string name="action_settings">Settings</string>
     <string name="star_text">%.1f/5 stars</string>
     <string name="results_count">Showing result %1$d out of %2$d</string>

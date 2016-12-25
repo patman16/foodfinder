@@ -1,6 +1,6 @@
 package com.hayes.patrick.foodfinder;
 
-import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -9,9 +9,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -31,7 +28,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class FoodFinder extends AppCompatActivity {
+/**
+ * Created by Patrick on 12/25/2016.
+ */
+
+public class SearchResultActivity extends AppCompatActivity {
     private int resultIndex = 0;
     private int resultCount = 0;
     protected TextView resultName;
@@ -44,7 +45,7 @@ public class FoodFinder extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_food_finder);
+        setContentView(R.layout.search_result_activity_food_finder);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -53,68 +54,6 @@ public class FoodFinder extends AppCompatActivity {
         FragmentTransaction ft = mapManager.beginTransaction();
         ft.hide(mapFragment);
         ft.commit();
-
-        Button searchButton = (Button)findViewById(R.id.searchButton);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-
-            EditText searchBox = (EditText)findViewById(R.id.searchBox);
-            searchText = searchBox.getText().toString();
-            resultName = (TextView)findViewById(R.id.resultName);
-            resultAddress = (TextView)findViewById(R.id.resultAddress);
-            resultStars = (TextView)findViewById(R.id.resultStars);
-
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("https://patman16foodfinder.herokuapp.com")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-            YelpBusinessService service = retrofit.create(YelpBusinessService.class);
-            Call<List<YelpBusiness>> createCall = service.get(searchText);
-            final List<YelpBusiness> businesses = new ArrayList<YelpBusiness>();
-            createCall.enqueue(new Callback<List<YelpBusiness>>() {
-                @Override
-                public void onResponse(Call<List<YelpBusiness>> _, Response<List<YelpBusiness>> resp) {
-                    businesses.addAll(resp.body());
-                    queriedBusinesses = businesses;
-                    resultCount = businesses.size();
-                    YelpBusiness business = businesses.get(0);
-                    resultName.setText(business.name);
-                    resultAddress.setText(business.address);
-                    String starText = String.format(getString(R.string.star_text), business.starRating);
-                    resultStars.setText(starText);
-                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.show(mapFragment);
-                    ft.commit();
-                    UpdateMap(business.name, business.latitude, business.longitude);
-                    resultIndex = 0;
-
-                    TextView resultsCountView = (TextView) findViewById(R.id.resultsCountView);
-                    resultsCountView.setVisibility(View.VISIBLE);
-                    String resultCountText = String.format(getString(R.string.results_count), resultIndex + 1, resultCount);
-                    resultsCountView.setText(resultCountText);
-
-                    if (resultCount > 1) {
-                        ImageButton nextResultButton = (ImageButton) findViewById(R.id.nextResultButton);
-                        nextResultButton.setVisibility(View.VISIBLE);
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<List<YelpBusiness>> _, Throwable t) {
-                    t.printStackTrace();
-                    resultName.setText(t.getMessage());
-                    resultAddress.setText("");
-                    resultStars.setText("");
-                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.hide(mapFragment);
-                    ft.commit();
-                }
-            });
-            }
-        });
 
         final ImageButton prevResultButton = (ImageButton)findViewById(R.id.prevResultButton);
         final ImageButton nextResultButton = (ImageButton)findViewById(R.id.nextResultButton);
@@ -155,6 +94,63 @@ public class FoodFinder extends AppCompatActivity {
                 CheckButtonVisibility(prevResultButton, nextResultButton);
                 UpdateResultCountText();
                 UpdateMap(currentBusiness.name, currentBusiness.latitude, currentBusiness.longitude);
+            }
+        });
+
+        RetrieveBusinesses();
+    }
+
+    private void RetrieveBusinesses() {
+        Intent intent = getIntent();
+        searchText = intent.getStringExtra(HomeActivity.SEARCH_TERM_MESSAGE);
+        resultName = (TextView)findViewById(R.id.resultName);
+        resultAddress = (TextView)findViewById(R.id.resultAddress);
+        resultStars = (TextView)findViewById(R.id.resultStars);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://patman16foodfinder.herokuapp.com")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        YelpBusinessService service = retrofit.create(YelpBusinessService.class);
+        Call<List<YelpBusiness>> createCall = service.get(searchText);
+        final List<YelpBusiness> businesses = new ArrayList<YelpBusiness>();
+        createCall.enqueue(new Callback<List<YelpBusiness>>() {
+            @Override
+            public void onResponse(Call<List<YelpBusiness>> _, Response<List<YelpBusiness>> resp) {
+                businesses.addAll(resp.body());
+                queriedBusinesses = businesses;
+                resultCount = businesses.size();
+                YelpBusiness business = businesses.get(0);
+                resultName.setText(business.name);
+                resultAddress.setText(business.address);
+                String starText = String.format(getString(R.string.star_text), business.starRating);
+                resultStars.setText(starText);
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.show(mapFragment);
+                ft.commit();
+                UpdateMap(business.name, business.latitude, business.longitude);
+                resultIndex = 0;
+
+                TextView resultsCountView = (TextView) findViewById(R.id.resultsCountView);
+                resultsCountView.setVisibility(View.VISIBLE);
+                String resultCountText = String.format(getString(R.string.results_count), resultIndex + 1, resultCount);
+                resultsCountView.setText(resultCountText);
+
+                if (resultCount > 1) {
+                    ImageButton nextResultButton = (ImageButton) findViewById(R.id.nextResultButton);
+                    nextResultButton.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<YelpBusiness>> _, Throwable t) {
+                t.printStackTrace();
+                resultName.setText(t.getMessage());
+                resultAddress.setText("");
+                resultStars.setText("");
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.hide(mapFragment);
+                ft.commit();
             }
         });
     }
