@@ -49,6 +49,24 @@
                     android:id="@+id/searchButton"
                     android:text="Search" />
             </LinearLayout>
+            <SeekBar
+                android:id="@+id/distanceSlider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/searchArea"
+                android:minHeight="12dp"
+                android:maxHeight="12dp"
+                android:paddingTop="12dp"
+                android:paddingRight="12dp"
+                android:paddingBottom="12dp"
+                android:paddingLeft="12dp"
+                android:max="19"/>
+            <TextView
+                android:id="@+id/distanceLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/distanceSlider"
+                android:textAlignment="center" />
         </RelativeLayout>
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

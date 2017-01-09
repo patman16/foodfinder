@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -40,6 +41,9 @@ public class SearchResultActivity extends AppCompatActivity {
     protected TextView resultStars;
     protected SupportMapFragment mapFragment;
     private String searchText;
+    private double currentLatitude;
+    private double currentLongitude;
+    private int distanceRadius;
     private List<YelpBusiness> queriedBusinesses;
 
     @Override
@@ -61,39 +65,39 @@ public class SearchResultActivity extends AppCompatActivity {
         prevResultButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (resultIndex == 0) {
-                    return;
-                }
+            if (resultIndex == 0) {
+                return;
+            }
 
-                resultIndex--;
-                YelpBusiness currentBusiness = queriedBusinesses.get(resultIndex);
-                resultName.setText(currentBusiness.name);
-                resultAddress.setText(currentBusiness.address);
-                String starText = String.format(getString(R.string.star_text), currentBusiness.starRating);
-                resultStars.setText(starText);
-                CheckButtonVisibility(prevResultButton, nextResultButton);
-                UpdateResultCountText();
-                UpdateMap(currentBusiness.name, currentBusiness.latitude, currentBusiness.longitude);
+            resultIndex--;
+            YelpBusiness currentBusiness = queriedBusinesses.get(resultIndex);
+            resultName.setText(currentBusiness.name);
+            resultAddress.setText(currentBusiness.address);
+            String starText = String.format(getString(R.string.star_text), currentBusiness.starRating);
+            resultStars.setText(starText);
+            CheckButtonVisibility(prevResultButton, nextResultButton);
+            UpdateResultCountText();
+            UpdateMap(currentBusiness.name, currentBusiness.latitude, currentBusiness.longitude);
             }
         });
 
         nextResultButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int finalResultIndex = resultCount - 1;
-                if (resultIndex == finalResultIndex) {
-                    return;
-                }
+            int finalResultIndex = resultCount - 1;
+            if (resultIndex == finalResultIndex) {
+                return;
+            }
 
-                resultIndex++;
-                YelpBusiness currentBusiness = queriedBusinesses.get(resultIndex);
-                resultName.setText(currentBusiness.name);
-                resultAddress.setText(currentBusiness.address);
-                String starText = String.format(getString(R.string.star_text), currentBusiness.starRating);
-                resultStars.setText(starText);
-                CheckButtonVisibility(prevResultButton, nextResultButton);
-                UpdateResultCountText();
-                UpdateMap(currentBusiness.name, currentBusiness.latitude, currentBusiness.longitude);
+            resultIndex++;
+            YelpBusiness currentBusiness = queriedBusinesses.get(resultIndex);
+            resultName.setText(currentBusiness.name);
+            resultAddress.setText(currentBusiness.address);
+            String starText = String.format(getString(R.string.star_text), currentBusiness.starRating);
+            resultStars.setText(starText);
+            CheckButtonVisibility(prevResultButton, nextResultButton);
+            UpdateResultCountText();
+            UpdateMap(currentBusiness.name, currentBusiness.latitude, currentBusiness.longitude);
             }
         });
 
@@ -103,7 +107,10 @@ public class SearchResultActivity extends AppCompatActivity {
     private void RetrieveBusinesses() {
         Intent intent = getIntent();
         searchText = intent.getStringExtra(HomeActivity.SEARCH_TERM_MESSAGE);
-        resultName = (TextView)findViewById(R.id.resultName);
+        distanceRadius = intent.getIntExtra(HomeActivity.SEARCH_RADIUS_MESSAGE, 1);
+        currentLatitude = intent.getDoubleExtra(HomeActivity.SEARCH_CURRENT_LATITUDE_MESSAGE, 0.0);
+        currentLongitude = intent.getDoubleExtra(HomeActivity.SEARCH_CURRENT_LONGITUDE_MESSAGE, 0.0);
+        resultName = (TextView)findViewById(R.id.resultName);;
         resultAddress = (TextView)findViewById(R.id.resultAddress);
         resultStars = (TextView)findViewById(R.id.resultStars);
 
@@ -112,7 +119,7 @@ public class SearchResultActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         YelpBusinessService service = retrofit.create(YelpBusinessService.class);
-        Call<List<YelpBusiness>> createCall = service.get(searchText);
+        Call<List<YelpBusiness>> createCall = service.get(currentLatitude, currentLongitude, distanceRadius, searchText);
         final List<YelpBusiness> businesses = new ArrayList<YelpBusiness>();
         createCall.enqueue(new Callback<List<YelpBusiness>>() {
             @Override
@@ -120,6 +127,14 @@ public class SearchResultActivity extends AppCompatActivity {
                 businesses.addAll(resp.body());
                 queriedBusinesses = businesses;
                 resultCount = businesses.size();
+                if (resultCount == 0) {
+                    resultName.setText(R.string.no_results_found_text);
+                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.hide(mapFragment);
+                    ft.commit();
+                    return;
+                }
+
                 YelpBusiness business = businesses.get(0);
                 resultName.setText(business.name);
                 resultAddress.setText(business.address);

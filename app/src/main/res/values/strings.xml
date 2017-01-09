@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">FoodFinder</string>
-    <string name="home_activity">FoodFinder Home</string>
+    <string name="home_activity">FoodFinder</string>
     <string name="search_result_activity">Search Results</string>
     <string name="action_settings">Settings</string>
+    <string name="distance_radius">Distance Radius: %1$d mile(s)</string>
     <string name="star_text">%.1f/5 stars</string>
+    <string name="no_results_found_text">No results found, please try searching again. Make sure your GPS is turned on so the app can get your current location.</string>
     <string name="results_count">Showing result %1$d out of %2$d</string>
 </resources>
