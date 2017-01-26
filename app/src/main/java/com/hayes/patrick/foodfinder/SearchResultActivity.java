@@ -10,6 +10,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -36,6 +38,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class SearchResultActivity extends AppCompatActivity {
     private int resultIndex = 0;
     private int resultCount = 0;
+    protected ProgressBar loadingSpinner;
+    protected TextView loadingSpinnerText;
+    protected RelativeLayout results;
     protected TextView resultName;
     protected TextView resultAddress;
     protected TextView resultStars;
@@ -110,6 +115,9 @@ public class SearchResultActivity extends AppCompatActivity {
         distanceRadius = intent.getIntExtra(HomeActivity.SEARCH_RADIUS_MESSAGE, 1);
         currentLatitude = intent.getDoubleExtra(HomeActivity.SEARCH_CURRENT_LATITUDE_MESSAGE, 0.0);
         currentLongitude = intent.getDoubleExtra(HomeActivity.SEARCH_CURRENT_LONGITUDE_MESSAGE, 0.0);
+        loadingSpinner = (ProgressBar)findViewById(R.id.loadingSpinner);
+        loadingSpinnerText = (TextView)findViewById(R.id.loadingSpinnerText);
+        results = (RelativeLayout)findViewById(R.id.results);
         resultName = (TextView)findViewById(R.id.resultName);;
         resultAddress = (TextView)findViewById(R.id.resultAddress);
         resultStars = (TextView)findViewById(R.id.resultStars);
@@ -121,9 +129,18 @@ public class SearchResultActivity extends AppCompatActivity {
         YelpBusinessService service = retrofit.create(YelpBusinessService.class);
         Call<List<YelpBusiness>> createCall = service.get(currentLatitude, currentLongitude, distanceRadius, searchText);
         final List<YelpBusiness> businesses = new ArrayList<YelpBusiness>();
+
+        results.setVisibility(View.GONE);
+        loadingSpinner.setVisibility(View.VISIBLE);
+        loadingSpinnerText.setVisibility(View.VISIBLE);
+
         createCall.enqueue(new Callback<List<YelpBusiness>>() {
             @Override
             public void onResponse(Call<List<YelpBusiness>> _, Response<List<YelpBusiness>> resp) {
+                results.setVisibility(View.VISIBLE);
+                loadingSpinner.setVisibility(View.GONE);
+                loadingSpinnerText.setVisibility(View.GONE);
+
                 businesses.addAll(resp.body());
                 queriedBusinesses = businesses;
                 resultCount = businesses.size();
@@ -159,6 +176,10 @@ public class SearchResultActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<YelpBusiness>> _, Throwable t) {
+                results.setVisibility(View.VISIBLE);
+                loadingSpinner.setVisibility(View.GONE);
+                loadingSpinnerText.setVisibility(View.GONE);
+
                 t.printStackTrace();
                 resultName.setText(t.getMessage());
                 resultAddress.setText("");
