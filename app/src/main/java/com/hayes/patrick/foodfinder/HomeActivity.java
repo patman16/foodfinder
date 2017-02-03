@@ -9,12 +9,14 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -36,6 +38,8 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
+import org.w3c.dom.Text;
+
 public class HomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -46,10 +50,13 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
     public final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     public final int REQUEST_CHECK_SETTINGS = 0x1;
 
-    private int distanceRadius = 1;
+    private SeekBar distanceSlider;
+    private TextView distanceLabel;
+
+    private double distanceRadius = 0.5;
     private double currentLatitude;
     private double currentLongitude;
-    GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,18 +97,19 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
 
-        SeekBar distanceSlider = (SeekBar)findViewById(R.id.distanceSlider);
-        final TextView distanceLabel = (TextView)findViewById(R.id.distanceLabel);
-        String progressText = String.format(getString(R.string.distance_radius), 1);
+        distanceSlider = (SeekBar)findViewById(R.id.distanceSlider);
+        distanceLabel = (TextView)findViewById(R.id.distanceLabel);
+        String progressText = String.format(getString(R.string.distance_radius), 0.5);
         distanceLabel.setText(progressText);
         distanceSlider.setProgress(0);
         distanceSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 progress += 1;
-                String progressText = String.format(getString(R.string.distance_radius), progress);
+                double mileProgress = progress / 2.0;
+                String progressText = String.format(getString(R.string.distance_radius), mileProgress);
                 distanceLabel.setText(progressText);
-                distanceRadius = progress;
+                distanceRadius = mileProgress;
             }
 
             @Override
@@ -112,6 +120,77 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+
+        Button decrementSlider = (Button)findViewById(R.id.decrementSlider);
+        decrementSlider.setOnTouchListener(new View.OnTouchListener() {
+            private Handler mHandler;
+
+            @Override public boolean onTouch(View v, MotionEvent event) {
+                switch(event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        if (mHandler != null) return true;
+                        mHandler = new Handler();
+                        mAction.run();
+                        mHandler.postDelayed(mAction, 150);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (mHandler == null) return true;
+                        mHandler.removeCallbacks(mAction);
+                        mHandler = null;
+                        break;
+                }
+
+                return false;
+            }
+
+            Runnable mAction = new Runnable() {
+                @Override public void run() {
+                    ChangeDistanceSlider(-0.5);
+                    mHandler.postDelayed(this, 250);
+                }
+            };
+        });
+        Button incrementSlider = (Button)findViewById(R.id.incrementSlider);
+        incrementSlider.setOnTouchListener(new View.OnTouchListener() {
+            private Handler mHandler;
+
+            @Override public boolean onTouch(View v, MotionEvent event) {
+                switch(event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        if (mHandler != null) return true;
+                        mHandler = new Handler();
+                        mAction.run();
+                        mHandler.postDelayed(mAction, 250);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (mHandler == null) return true;
+                        mHandler.removeCallbacks(mAction);
+                        mHandler = null;
+                        break;
+                }
+
+                return false;
+            }
+
+            Runnable mAction = new Runnable() {
+                @Override public void run() {
+                    ChangeDistanceSlider(0.5);
+                    mHandler.postDelayed(this, 150);
+                }
+            };
+        });
+    }
+
+    private void ChangeDistanceSlider(double amount)
+    {
+        double newDistance = distanceRadius + amount;
+        if (newDistance >= 0.5 && newDistance <= 20) {
+            distanceRadius = newDistance;
+            int progress = (int)((newDistance - 0.5) * 2);
+            distanceSlider.setProgress(progress);
+            String progressText = String.format(getString(R.string.distance_radius), newDistance);
+            distanceLabel.setText(progressText);
+        }
     }
 
     private boolean checkLocationPermission(){

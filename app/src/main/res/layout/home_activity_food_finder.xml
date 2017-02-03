@@ -60,13 +60,35 @@
                 android:paddingRight="12dp"
                 android:paddingBottom="12dp"
                 android:paddingLeft="12dp"
-                android:max="19"/>
+                android:max="39" />
+            <Button
+                android:id="@+id/decrementSlider"
+                android:text="-"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_below="@+id/distanceSlider"
+                android:layout_alignParentLeft="true"
+                android:background="@drawable/small_circular_button" />
             <TextView
                 android:id="@+id/distanceLabel"
-                android:layout_width="match_parent"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_toLeftOf="@+id/incrementSlider"
+                android:layout_toRightOf="@+id/decrementSlider"
                 android:layout_below="@+id/distanceSlider"
                 android:textAlignment="center" />
+            <Button
+                android:id="@+id/incrementSlider"
+                android:text="+"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_below="@+id/distanceSlider"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/small_circular_button" />
         </RelativeLayout>
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

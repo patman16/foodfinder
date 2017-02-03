@@ -14,5 +14,5 @@ import retrofit2.http.Path;
 public interface YelpBusinessService {
     @GET("business/{latitude}/{longitude}/{mileRadius}/{searchTerm}")
     Call<List<YelpBusiness>> get(@Path("latitude") double latitude, @Path("longitude") double longitude,
-                                 @Path("mileRadius") int mileRadius, @Path("searchTerm") String searchTerm);
+                                 @Path("mileRadius") double mileRadius, @Path("searchTerm") String searchTerm);
 }

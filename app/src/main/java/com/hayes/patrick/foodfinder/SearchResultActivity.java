@@ -48,7 +48,7 @@ public class SearchResultActivity extends AppCompatActivity {
     private String searchText;
     private double currentLatitude;
     private double currentLongitude;
-    private int distanceRadius;
+    private double distanceRadius;
     private List<YelpBusiness> queriedBusinesses;
 
     @Override
@@ -112,7 +112,7 @@ public class SearchResultActivity extends AppCompatActivity {
     private void RetrieveBusinesses() {
         Intent intent = getIntent();
         searchText = intent.getStringExtra(HomeActivity.SEARCH_TERM_MESSAGE);
-        distanceRadius = intent.getIntExtra(HomeActivity.SEARCH_RADIUS_MESSAGE, 1);
+        distanceRadius = intent.getDoubleExtra(HomeActivity.SEARCH_RADIUS_MESSAGE, 0.5);
         currentLatitude = intent.getDoubleExtra(HomeActivity.SEARCH_CURRENT_LATITUDE_MESSAGE, 0.0);
         currentLongitude = intent.getDoubleExtra(HomeActivity.SEARCH_CURRENT_LONGITUDE_MESSAGE, 0.0);
         loadingSpinner = (ProgressBar)findViewById(R.id.loadingSpinner);
